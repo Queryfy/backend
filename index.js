@@ -6,8 +6,12 @@ const scraperController = require('./pageController');
 
 app.get('/', (req, res) => {
   const query = req.query.search;
-  // res.json(data);
   const browserInstance = browserObject.startBrowser();
+
+  if (!query) res.json({
+    type: 'error',
+    message: 'Missing query param.'
+  });
 
   scraperController(browserInstance, query).then(data => {
     res.json(data);
