@@ -1,9 +1,11 @@
 const express = require('express');
+const cors = require('cors');
 const app = express();
 const port = process.env.PORT || 8000;
 const browserObject = require('./browser');
 const scraperController = require('./pageController');
 
+app.use(cors());
 app.get('/', (req, res) => {
   const query = req.query.search;
   const browserInstance = browserObject.startBrowser();

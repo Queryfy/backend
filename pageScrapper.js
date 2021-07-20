@@ -1,9 +1,9 @@
 const scrollPageToBottom = require('puppeteer-autoscroll-down');
 const Ecommerces = [
-  'EXITO',
-  'ALKOSTO',
-  'MERCADOLIBRE',
-  'FALABELLA',
+  // 'EXITO', //Check selectors.
+  // 'ALKOSTO', //waiting for selector `#salesperson_result` failed: timeout 30000ms exceeded
+  'MERCADOLIBRE', //Ok
+  'FALABELLA', //Ok
 ];
 const Endpoints = {
   EXITO: 'https://www.exito.com/search?_query=',
