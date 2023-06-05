@@ -6,10 +6,11 @@ const Ecommerces = [
   'FALABELLA', //Ok
 ];
 const Endpoints = {
-  EXITO: 'https://www.exito.com/search?_query=',
+  EXITO: https://www.exito.com/${QUERY}?map=ft',
   ALKOSTO: 'https://www.alkosto.com/salesperson/result/?q=',
   MERCADOLIBRE: 'https://listado.mercadolibre.com.co/',
   FALABELLA: 'https://www.falabella.com.co/falabella-co/search?Ntt=',
+  FALABELLA_FALLBACK: 'https://www.falabella.com.co/falabella-co/search?Ntt=',
 };
 
 const SELECTORS = {
@@ -45,6 +46,14 @@ const SELECTORS = {
     NAME: '.pod-subTitle',
     IMAGE: '.pod-head img',
   },
+  FALABELLA_FALLBACK: {
+    WAIT: '.search-results--products',
+    PRODUCT: '.pod',
+    PRICE: '.pod-prices .prices-0',
+    URL: '.list-view',
+    NAME: '.pod-subTitle',
+    IMAGE: 'img',
+  },
 };
 
 class PageScrapper {
@@ -60,6 +69,7 @@ class PageScrapper {
     try {
       await page.goto(url);
     } catch (err) {
+      console.log('>>> goto error')
       console.log(err);
       return [];
     }
@@ -81,7 +91,7 @@ class PageScrapper {
         products = products.map(el => {
           const url = el.querySelector(SELECTORS[ecommerce].URL).href;
           const price = el.querySelector(SELECTORS[ecommerce].PRICE).innerText;
-          const priceParsed = defaultFormatter(price);
+          const priceParsed = defaultFormatter(price) ?? price;
           const name = el.querySelector(SELECTORS[ecommerce].NAME).innerText;
           let image;
 
@@ -97,17 +107,33 @@ class PageScrapper {
             priceParsed,
             name,
             image,
-            ecommerce,
+            ecommerce: ecommerce.replace('_FALLBACK', ''),
           };
         });
 
         return products;
       }, SELECTORS, ecommerce);
 
+      if (products.length === 0) {
+        const ecommerceFallback = `${ecommerce}_FALLBACK`;
+        console.log('>>> has zero products', {ecommerceFallback})
+        if (SELECTORS[ecommerceFallback]) {
+          console.log('>>> has fallback')
+          return this.scrapePage(ecommerceFallback);
+        }
+      }
       return products;
     } catch (err) {
-      console.log(err);
-      return [];
+      console.log('>>> Error parsing products', err);
+      if (!ecommerce.includes('FALLBACK')) {
+        const ecommerceFallback = `${ecommerce}_FALLBACK`;
+        if (SELECTORS[ecommerceFallback]) {
+          console.log('>>> has fallback')
+          return this.scrapePage(ecommerceFallback);
+        }
+      } else {
+        return [];
+      }
     }
   }
 
