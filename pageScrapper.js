@@ -6,7 +6,7 @@ const Ecommerces = [
   'FALABELLA', //Ok
 ];
 const Endpoints = {
-  EXITO: https://www.exito.com/${QUERY}?map=ft',
+  EXITO: `https://www.exito.com/${QUERY}?map=ft`,
   ALKOSTO: 'https://www.alkosto.com/salesperson/result/?q=',
   MERCADOLIBRE: 'https://listado.mercadolibre.com.co/',
   FALABELLA: 'https://www.falabella.com.co/falabella-co/search?Ntt=',
