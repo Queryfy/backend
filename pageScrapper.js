@@ -1,34 +1,34 @@
 const scrollPageToBottom = require('puppeteer-autoscroll-down');
 const Ecommerces = [
-  // 'EXITO', //Check selectors.
-  // 'ALKOSTO', //waiting for selector `#salesperson_result` failed: timeout 30000ms exceeded
+  'EXITO', //Ok
+  'ALKOSTO', //Ok
   'MERCADOLIBRE', //Ok
   'FALABELLA', //Ok
 ];
 const Endpoints = {
-  EXITO: `https://www.exito.com/${QUERY}?map=ft`,
-  ALKOSTO: 'https://www.alkosto.com/salesperson/result/?q=',
-  MERCADOLIBRE: 'https://listado.mercadolibre.com.co/',
-  FALABELLA: 'https://www.falabella.com.co/falabella-co/search?Ntt=',
-  FALABELLA_FALLBACK: 'https://www.falabella.com.co/falabella-co/search?Ntt=',
+  EXITO: 'https://www.exito.com/__QUERY__?map=ft',
+  ALKOSTO: 'https://www.alkosto.com/search/?text=__QUERY__',
+  MERCADOLIBRE: 'https://listado.mercadolibre.com.co/__QUERY__',
+  FALABELLA: 'https://www.falabella.com.co/falabella-co/search?Ntt=__QUERY__',
+  FALABELLA_FALLBACK: 'https://www.falabella.com.co/falabella-co/search?Ntt=__QUERY__',
 };
 
 const SELECTORS = {
   EXITO: {
     WAIT: '.vtex-search-result-3-x-gallery',
     PRODUCT: '.vtex-product-summary-2-x-container',
-    PRICE: '.exito-vtex-components-4-x-alliedDiscountPrice span',
+    PRICE: '.exito-vtex-components-4-x-PricePDP span',
     URL: '.vtex-product-summary-2-x-clearLink',
     NAME: '.vtex-store-components-3-x-productBrand',
     IMAGE: '.vtex-product-summary-2-x-imageNormal',
   },
   ALKOSTO: {
-    WAIT: '#salesperson_result',
-    PRODUCT: '.salesperson-products-grid-item',
-    PRICE: '.price',
-    URL: '.product-image',
-    NAME: '.product-name a',
-    IMAGE: '.product-image img',
+    WAIT: '.product__list',
+    PRODUCT: '.product__item',
+    PRICE: '.product__price--discounts__price span',
+    URL: '.product__item__top__title a',
+    NAME: '.product__item__top__title a',
+    IMAGE: '.product__item__information__image .js-algolia-product-click',
   },
   MERCADOLIBRE: {
     WAIT: '.ui-search-layout',
@@ -63,7 +63,7 @@ class PageScrapper {
   }
 
   async scrapePage(ecommerce) {
-    const url = `${Endpoints[ecommerce]}${this.query_}`;
+    const url = Endpoints[ecommerce].replace('__QUERY__', this.query_);
     const page = await this.browser_.newPage();
     console.log(`Navigating to ${url}...`);
     try {
@@ -89,17 +89,12 @@ class PageScrapper {
           return +rawPrice.split('$')[1].replace(reg, '');
         }
         products = products.map(el => {
-          const url = el.querySelector(SELECTORS[ecommerce].URL).href;
-          const price = el.querySelector(SELECTORS[ecommerce].PRICE).innerText;
-          const priceParsed = defaultFormatter(price) ?? price;
-          const name = el.querySelector(SELECTORS[ecommerce].NAME).innerText;
-          let image;
-
-          try {
-            image = el.querySelector(SELECTORS[ecommerce].IMAGE).src;
-          } catch (err) {
-            image = 'https://via.placeholder.com/250';
-          }
+          const url = el.querySelector(SELECTORS[ecommerce].URL)?.href;
+          const price = el.querySelector(SELECTORS[ecommerce].PRICE)?.innerText;
+          const priceParsed = defaultFormatter(price);
+          const name = el.querySelector(SELECTORS[ecommerce].NAME)?.innerText;
+          const imageSrc = el.querySelector(SELECTORS[ecommerce].IMAGE)?.srcset ? el.querySelector(SELECTORS[ecommerce].IMAGE)?.srcset.split(' ')[0] : el.querySelector(SELECTORS[ecommerce].IMAGE)?.src;
+          const image = imageSrc ?? 'https://via.placeholder.com/250';
 
           return {
             url,
